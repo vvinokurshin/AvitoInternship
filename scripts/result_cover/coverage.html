@@ -1,0 +1,1423 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>delivery: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">github.com/vvinokurshin/AvitoInternship/internal/history/delivery/handler.go (56.5%)</option>
+				
+				<option value="file1">github.com/vvinokurshin/AvitoInternship/internal/history/repository/postgres/models.go (100.0%)</option>
+				
+				<option value="file2">github.com/vvinokurshin/AvitoInternship/internal/history/repository/postgres/postgres.go (90.0%)</option>
+				
+				<option value="file3">github.com/vvinokurshin/AvitoInternship/internal/history/usecase/usecase.go (77.8%)</option>
+				
+				<option value="file4">github.com/vvinokurshin/AvitoInternship/internal/models/history.go (60.0%)</option>
+				
+				<option value="file5">github.com/vvinokurshin/AvitoInternship/internal/models/segment.go (41.7%)</option>
+				
+				<option value="file6">github.com/vvinokurshin/AvitoInternship/internal/segment/delivery/handler.go (57.1%)</option>
+				
+				<option value="file7">github.com/vvinokurshin/AvitoInternship/internal/segment/repository/postgres/models.go (100.0%)</option>
+				
+				<option value="file8">github.com/vvinokurshin/AvitoInternship/internal/segment/repository/postgres/postgres.go (79.6%)</option>
+				
+				<option value="file9">github.com/vvinokurshin/AvitoInternship/internal/segment/usecase/usecase.go (67.7%)</option>
+				
+				<option value="file10">github.com/vvinokurshin/AvitoInternship/internal/user/delivery/handler.go (57.7%)</option>
+				
+				<option value="file11">github.com/vvinokurshin/AvitoInternship/internal/user/repository/postgres/models.go (100.0%)</option>
+				
+				<option value="file12">github.com/vvinokurshin/AvitoInternship/internal/user/repository/postgres/postgres.go (72.2%)</option>
+				
+				<option value="file13">github.com/vvinokurshin/AvitoInternship/internal/user/usecase/usecase.go (68.6%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">no coverage</span>
+				<span class="cov1">low coverage</span>
+				<span class="cov2">*</span>
+				<span class="cov3">*</span>
+				<span class="cov4">*</span>
+				<span class="cov5">*</span>
+				<span class="cov6">*</span>
+				<span class="cov7">*</span>
+				<span class="cov8">*</span>
+				<span class="cov9">*</span>
+				<span class="cov10">high coverage</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package delivery
+
+import (
+        "github.com/go-playground/validator/v10"
+        pkgErrors "github.com/pkg/errors"
+        "github.com/vvinokurshin/AvitoInternship/internal/config"
+        historyUC "github.com/vvinokurshin/AvitoInternship/internal/history/usecase"
+        "github.com/vvinokurshin/AvitoInternship/internal/models"
+        "github.com/vvinokurshin/AvitoInternship/pkg"
+        "github.com/vvinokurshin/AvitoInternship/pkg/errors"
+        "net/http"
+        "strconv"
+        "time"
+)
+
+type DeliveryI interface {
+        GetHistoryCSV(w http.ResponseWriter, r *http.Request)
+}
+
+type Delivery struct {
+        cfg *config.Config
+        uc  historyUC.UseCaseI
+}
+
+// GetHistoryCSV godoc
+// @Summary      GetHistoryCSV
+// @Description  getting the history of adding/removing users in a segment for a specific month
+// @Tags     history
+// @Accept         application/json
+// @Produce  application/json
+// @Param year query int true "year"
+// @Param month query int true "month"
+// @Success 200 "downloaded file"
+// @Failure 400 {object} errors.JSONError "year is required"
+// @Failure 400 {object} errors.JSONError "year is invalid"
+// @Failure 400 {object} errors.JSONError "month is required"
+// @Failure 400 {object} errors.JSONError "month is invalid"
+// @Failure 400 {object} errors.JSONError "invalid parameters"
+// @Failure 500 {object} errors.JSONError "internal server error"
+// @Router   /history [get]
+func (d *Delivery) GetHistoryCSV(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        year, err := strconv.Atoi(r.URL.Query().Get("year"))
+        if err != nil </span><span class="cov0" title="0">{
+                pkg.HandleError(w, r, errors.ErrYearIsRequired)
+                return
+        }</span>
+        <span class="cov8" title="1">month, err := strconv.Atoi(r.URL.Query().Get("month"))
+        if err != nil </span><span class="cov0" title="0">{
+                pkg.HandleError(w, r, errors.ErrMonthIsRequired)
+                return
+        }</span>
+
+        <span class="cov8" title="1">form := models.FormHistory{
+                Year:  year,
+                Month: time.Month(month),
+        }
+
+        validate := validator.New()
+        if err := validate.Struct(form); err != nil </span><span class="cov0" title="0">{
+                pkg.HandleError(w, r, pkgErrors.Wrap(errors.ErrInvalidParameters, err.Error()))
+                return
+        }</span>
+
+        <span class="cov8" title="1">err = form.Validate()
+        if err != nil </span><span class="cov0" title="0">{
+                pkg.HandleError(w, r, err)
+                return
+        }</span>
+
+        <span class="cov8" title="1">fileName, err := d.uc.GetHistoryCSV(form)
+        if err != nil </span><span class="cov0" title="0">{
+                pkg.HandleError(w, r, err)
+                return
+        }</span>
+
+        <span class="cov8" title="1">pkg.SendFile(w, r, fileName)</span>
+}
+
+func New(cfg *config.Config, uc historyUC.UseCaseI) DeliveryI <span class="cov8" title="1">{
+        return &amp;Delivery{
+                cfg: cfg,
+                uc:  uc,
+        }
+}</span>
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package postgres
+
+import (
+        "fmt"
+        "github.com/vvinokurshin/AvitoInternship/internal/models"
+)
+
+type History struct {
+        RecordID    uint64
+        UserID      uint64
+        SegmentSlug string
+        Operation   string
+        Datetime    string
+}
+
+func (History) TableName(schemaName, tableName string) string <span class="cov8" title="1">{
+        return fmt.Sprintf("%s.%s", schemaName, tableName)
+}</span>
+
+func (s *History) ToHistoryModel() *models.History <span class="cov8" title="1">{
+        return &amp;models.History{
+                UserID:      s.UserID,
+                SegmentSlug: s.SegmentSlug,
+                Operation:   s.Operation,
+                Datetime:    s.Datetime,
+        }
+}</span>
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package postgres
+
+import (
+        pkgErrors "github.com/pkg/errors"
+        "github.com/vvinokurshin/AvitoInternship/internal/config"
+        "github.com/vvinokurshin/AvitoInternship/internal/history/repository"
+        "github.com/vvinokurshin/AvitoInternship/internal/models"
+        "github.com/vvinokurshin/AvitoInternship/pkg/errors"
+        "gorm.io/gorm"
+        "time"
+)
+
+type historyRepo struct {
+        cfg *config.Config
+        db  *gorm.DB
+}
+
+func New(cfg *config.Config, db *gorm.DB) repository.RepositoryI <span class="cov8" title="1">{
+        return &amp;historyRepo{
+                cfg: cfg,
+                db:  db,
+        }
+}</span>
+
+func (repo *historyRepo) SelectRecordsByDate(year int, month time.Month) ([]models.History, error) <span class="cov8" title="1">{
+        var dbRecords []History
+        datetime := time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)
+
+        tx := repo.db.Table(History{}.TableName(repo.cfg.DB.DBSchemaName, repo.cfg.DB.DBHistoryTableName)).Omit("record_id").
+                Where("date_trunc('month', datetime) = ?", datetime).Find(&amp;dbRecords)
+        if err := tx.Error; err != nil </span><span class="cov0" title="0">{
+                return []models.History{}, pkgErrors.WithMessage(errors.ErrInternal, err.Error())
+        }</span>
+
+        <span class="cov8" title="1">result := make([]models.History, len(dbRecords))
+        for idx, dbRecord := range dbRecords </span><span class="cov8" title="1">{
+                result[idx] = *dbRecord.ToHistoryModel()
+        }</span>
+
+        <span class="cov8" title="1">return result, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package usecase
+
+import (
+        pkgErr "github.com/pkg/errors"
+        "github.com/vvinokurshin/AvitoInternship/internal/config"
+        historyRepository "github.com/vvinokurshin/AvitoInternship/internal/history/repository"
+        "github.com/vvinokurshin/AvitoInternship/internal/models"
+        "github.com/vvinokurshin/AvitoInternship/pkg"
+        "strconv"
+)
+
+//go:generate mockgen -destination=./mocks/usecase.go -source=./usecase.go -package=mocks
+
+type UseCaseI interface {
+        GetHistoryCSV(form models.FormHistory) (string, error)
+}
+
+type UseCase struct {
+        cfg         *config.Config
+        historyRepo historyRepository.RepositoryI
+}
+
+func New(cfg *config.Config, historyRepo historyRepository.RepositoryI) UseCaseI <span class="cov8" title="1">{
+        return &amp;UseCase{
+                cfg:         cfg,
+                historyRepo: historyRepo,
+        }
+}</span>
+
+func (uc *UseCase) GetHistoryCSV(form models.FormHistory) (string, error) <span class="cov8" title="1">{
+        records, err := uc.historyRepo.SelectRecordsByDate(form.Year, form.Month)
+        if err != nil </span><span class="cov0" title="0">{
+                return "", pkgErr.Wrap(err, "delete segments from user")
+        }</span>
+
+        <span class="cov8" title="1">fileName := "history-" + strconv.Itoa(form.Year) + "-" + strconv.Itoa(int(form.Month)) + ".csv"
+        err = pkg.WriteCSV(records, fileName)
+        if err != nil </span><span class="cov0" title="0">{
+                return "", pkgErr.Wrap(err, "write csv")
+        }</span>
+
+        <span class="cov8" title="1">return fileName, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package models
+
+import (
+        "github.com/vvinokurshin/AvitoInternship/pkg/errors"
+        "time"
+)
+
+type History struct {
+        UserID      uint64 `json:"userID"`
+        SegmentSlug string `json:"segmentSlug"`
+        Operation   string `json:"operation"`
+        Datetime    string `json:"datetime"`
+}
+
+type FormHistory struct {
+        Year  int        `json:"year"`
+        Month time.Month `json:"month"`
+}
+
+func (form *FormHistory) Validate() error <span class="cov8" title="1">{
+        if form.Year &lt; errors.MinYear || form.Year &gt; errors.MaxYear </span><span class="cov0" title="0">{
+                return errors.ErrYearIsInvalid
+        }</span>
+
+        <span class="cov8" title="1">if form.Month &lt; errors.MinMonth || form.Month &gt; errors.MaxMonth </span><span class="cov0" title="0">{
+                return errors.ErrMonthIsRequired
+        }</span>
+
+        <span class="cov8" title="1">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">package models
+
+import (
+        "github.com/vvinokurshin/AvitoInternship/pkg/errors"
+        "time"
+)
+
+type Segment struct {
+        SegmentID uint64 `json:"segmentID"`
+        Slug      string `json:"slug"`
+        Percent   *int   `json:"percent"`
+}
+
+type FormSegment struct {
+        Slug    string `json:"slug" validate:"required"`
+        Percent *int   `json:"percent"`
+}
+
+func (form *FormSegment) Validate() error <span class="cov1" title="1">{
+        if form.Percent != nil </span><span class="cov0" title="0">{
+                if *form.Percent &lt; errors.MinPercent || *form.Percent &gt; errors.MaxPercent </span><span class="cov0" title="0">{
+                        return errors.ErrPercentIsInvalid
+                }</span>
+        }
+
+        <span class="cov1" title="1">return nil</span>
+}
+
+type SegmentResponse struct {
+        Segment Segment `json:"segment"`
+}
+
+type SegmentsResponse struct {
+        Segments []Segment `json:"segments"`
+        Count    int       `json:"count"`
+}
+
+type AddUserToSegment struct {
+        SegmentSlug string  `json:"segmentSlug"`
+        SegmentID   uint64  `json:"-"`
+        Until       *string `json:"until"`
+}
+
+type FormEditSegments struct {
+        SegmentsToAdd    []AddUserToSegment `json:"segmentsToAdd"`
+        SegmentsToRemove []string           `json:"segmentsToRemove"`
+}
+
+func (form *FormEditSegments) Validate() error <span class="cov1" title="1">{
+        for idx, segment := range form.SegmentsToAdd </span><span class="cov10" title="3">{
+                if segment.Until != nil </span><span class="cov0" title="0">{
+                        timeValue, err := time.Parse("2006-01-02 15:04", *segment.Until)
+                        if err != nil </span><span class="cov0" title="0">{
+                                return errors.ErrUntilIsInvalid
+                        }</span>
+                        <span class="cov0" title="0">subtractedTime := timeValue.Add(-3 * time.Hour).Format("2006-01-02 15:04")
+                        form.SegmentsToAdd[idx].Until = &amp;subtractedTime</span>
+                }
+        }
+
+        <span class="cov1" title="1">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">package delivery
+
+import (
+        "encoding/json"
+        "github.com/go-playground/validator/v10"
+        "github.com/gorilla/mux"
+        pkgErrors "github.com/pkg/errors"
+        "github.com/vvinokurshin/AvitoInternship/internal/config"
+        "github.com/vvinokurshin/AvitoInternship/internal/models"
+        segmentUC "github.com/vvinokurshin/AvitoInternship/internal/segment/usecase"
+        "github.com/vvinokurshin/AvitoInternship/pkg"
+        "github.com/vvinokurshin/AvitoInternship/pkg/errors"
+        "net/http"
+        "strconv"
+)
+
+type DeliveryI interface {
+        CreateSegment(w http.ResponseWriter, r *http.Request)
+        DeleteSegment(w http.ResponseWriter, r *http.Request)
+        GetSegment(w http.ResponseWriter, r *http.Request)
+        GetUserSegments(w http.ResponseWriter, r *http.Request)
+        EditUserSegments(w http.ResponseWriter, r *http.Request)
+}
+
+type Delivery struct {
+        cfg *config.Config
+        uc  segmentUC.UseCaseI
+}
+
+func New(cfg *config.Config, uc segmentUC.UseCaseI) DeliveryI <span class="cov10" title="5">{
+        return &amp;Delivery{
+                cfg: cfg,
+                uc:  uc,
+        }
+}</span>
+
+// CreateSegment godoc
+// @Summary      CreateSegment
+// @Description  create segment
+// @Tags     segment
+// @Accept         application/json
+// @Produce  application/json
+// @Param    segment body models.FormSegment true "form segment"
+// @Success 200 {object} models.SegmentResponse "segment created"
+// @Failure 400 {object} errors.JSONError "invalid form"
+// @Failure 400 {object} errors.JSONError "percent is invalid"
+// @Failure 409 {object} errors.JSONError "segment with this slug already exists"
+// @Failure 500 {object} errors.JSONError "internal server error"
+// @Router   /segment/create [post]
+func (d *Delivery) CreateSegment(w http.ResponseWriter, r *http.Request) <span class="cov1" title="1">{
+        form := models.FormSegment{}
+        if err := json.NewDecoder(r.Body).Decode(&amp;form); err != nil </span><span class="cov0" title="0">{
+                pkg.HandleError(w, r, pkgErrors.Wrap(errors.ErrInvalidForm, err.Error()))
+                return
+        }</span>
+
+        <span class="cov1" title="1">validate := validator.New()
+        if err := validate.Struct(form); err != nil </span><span class="cov0" title="0">{
+                pkg.HandleError(w, r, pkgErrors.Wrap(errors.ErrInvalidForm, err.Error()))
+                return
+        }</span>
+
+        <span class="cov1" title="1">err := form.Validate()
+        if err != nil </span><span class="cov0" title="0">{
+                pkg.HandleError(w, r, err)
+                return
+        }</span>
+
+        <span class="cov1" title="1">response, err := d.uc.CreateSegment(form)
+        if err != nil </span><span class="cov0" title="0">{
+                pkg.HandleError(w, r, err)
+                return
+        }</span>
+
+        <span class="cov1" title="1">pkg.SendJSON(w, r, http.StatusOK, models.SegmentResponse{
+                Segment: *response,
+        })</span>
+}
+
+// DeleteSegment godoc
+// @Summary      DeleteSegment
+// @Description  delete segment
+// @Tags     segment
+// @Accept         application/json
+// @Produce  application/json
+// @Param slug path string true "slug"
+// @Success 200 "segment deleted"
+// @Failure 400 {object} errors.JSONError "invalid url"
+// @Failure 404 {object} errors.JSONError "segment not found"
+// @Failure 500 {object} errors.JSONError "internal server error"
+// @Router   /segment/{slug} [delete]
+func (d *Delivery) DeleteSegment(w http.ResponseWriter, r *http.Request) <span class="cov1" title="1">{
+        vars := mux.Vars(r)
+        slug, ok := vars["slug"]
+        if !ok </span><span class="cov0" title="0">{
+                pkg.HandleError(w, r, errors.ErrInvalidURL)
+                return
+        }</span>
+
+        <span class="cov1" title="1">err := d.uc.DeleteSegment(slug)
+        if err != nil </span><span class="cov0" title="0">{
+                pkg.HandleError(w, r, err)
+                return
+        }</span>
+
+        <span class="cov1" title="1">w.WriteHeader(http.StatusOK)</span>
+}
+
+// GetSegment godoc
+// @Summary      GetSegment
+// @Description  get segment
+// @Tags     segment
+// @Accept         application/json
+// @Produce  application/json
+// @Param slug path string true "slug"
+// @Success 200 {object} models.SegmentResponse "success get segment info"
+// @Failure 400 {object} errors.JSONError "invalid url"
+// @Failure 404 {object} errors.JSONError "segment not found"
+// @Failure 500 {object} errors.JSONError "internal server error"
+// @Router   /segment/{slug} [get]
+func (d *Delivery) GetSegment(w http.ResponseWriter, r *http.Request) <span class="cov1" title="1">{
+        vars := mux.Vars(r)
+        slug, ok := vars["slug"]
+        if !ok </span><span class="cov0" title="0">{
+                pkg.HandleError(w, r, errors.ErrInvalidURL)
+                return
+        }</span>
+
+        <span class="cov1" title="1">response, err := d.uc.GetSegmentBySlug(slug)
+        if err != nil </span><span class="cov0" title="0">{
+                pkg.HandleError(w, r, err)
+                return
+        }</span>
+
+        <span class="cov1" title="1">pkg.SendJSON(w, r, http.StatusOK, models.SegmentResponse{
+                Segment: *response,
+        })</span>
+}
+
+// GetUserSegments godoc
+// @Summary      GetUserSegments
+// @Description  get user's segment
+// @Tags     segment
+// @Accept         application/json
+// @Produce  application/json
+// @Param id path int true "id"
+// @Success 200 {object} models.SegmentsResponse "success get user's segments"
+// @Failure 400 {object} errors.JSONError "invalid url"
+// @Failure 404 {object} errors.JSONError "user not found"
+// @Failure 500 {object} errors.JSONError "internal server error"
+// @Router   /user/{id}/segments [get]
+func (d *Delivery) GetUserSegments(w http.ResponseWriter, r *http.Request) <span class="cov1" title="1">{
+        vars := mux.Vars(r)
+        userID, err := strconv.ParseUint(vars["id"], 10, 64)
+        if err != nil </span><span class="cov0" title="0">{
+                pkg.HandleError(w, r, errors.ErrInvalidURL)
+                return
+        }</span>
+
+        <span class="cov1" title="1">segments, err := d.uc.GetUserSegments(userID)
+        if err != nil </span><span class="cov0" title="0">{
+                pkg.HandleError(w, r, err)
+                return
+        }</span>
+
+        <span class="cov1" title="1">pkg.SendJSON(w, r, http.StatusOK, models.SegmentsResponse{
+                Segments: segments,
+                Count:    len(segments),
+        })</span>
+}
+
+// EditUserSegments godoc
+// @Summary      EditUserSegments
+// @Description  edit user's segment
+// @Tags     segment
+// @Accept         application/json
+// @Produce  application/json
+// @Param id path int true "id"
+// @Param    segment body models.FormEditSegments true "form segment"
+// @Success 200 {object} models.SegmentsResponse "success edit user's segments"
+// @Failure 400 {object} errors.JSONError "invalid url"
+// @Failure 400 {object} errors.JSONError  "field until is invalid. format: YYYY-MM-DD HH:MM"
+// @Failure 404 {object} errors.JSONError "user not found"
+// @Failure 404 {object} errors.JSONError "segment not found"
+// @Failure 500 {object} errors.JSONError "internal server error"
+// @Router   /user/{id}/segments/edit [put]
+func (d *Delivery) EditUserSegments(w http.ResponseWriter, r *http.Request) <span class="cov1" title="1">{
+        vars := mux.Vars(r)
+        userID, err := strconv.ParseUint(vars["id"], 10, 64)
+        if err != nil </span><span class="cov0" title="0">{
+                pkg.HandleError(w, r, errors.ErrInvalidURL)
+                return
+        }</span>
+
+        <span class="cov1" title="1">form := models.FormEditSegments{}
+        if err := json.NewDecoder(r.Body).Decode(&amp;form); err != nil </span><span class="cov0" title="0">{
+                pkg.HandleError(w, r, pkgErrors.Wrap(errors.ErrInvalidForm, err.Error()))
+                return
+        }</span>
+
+        <span class="cov1" title="1">validate := validator.New()
+        if err := validate.Struct(form); err != nil </span><span class="cov0" title="0">{
+                pkg.HandleError(w, r, pkgErrors.Wrap(errors.ErrInvalidForm, err.Error()))
+                return
+        }</span>
+
+        <span class="cov1" title="1">err = form.Validate()
+        if err != nil </span><span class="cov0" title="0">{
+                pkg.HandleError(w, r, err)
+                return
+        }</span>
+
+        <span class="cov1" title="1">segments, err := d.uc.EditUserSegments(userID, form.SegmentsToAdd, form.SegmentsToRemove)
+        if err != nil </span><span class="cov0" title="0">{
+                pkg.HandleError(w, r, err)
+                return
+        }</span>
+
+        <span class="cov1" title="1">pkg.SendJSON(w, r, http.StatusOK, models.SegmentsResponse{
+                Segments: segments,
+                Count:    len(segments),
+        })</span>
+}
+</pre>
+		
+		<pre class="file" id="file7" style="display: none">package postgres
+
+import (
+        "fmt"
+        "github.com/vvinokurshin/AvitoInternship/internal/models"
+)
+
+type Segment struct {
+        SegmentID uint64 `gorm:"primary_key"`
+        Slug      string
+        Percent   *int `gorm:"null"`
+}
+
+func (Segment) TableName(schemaName, tableName string) string <span class="cov10" title="4">{
+        return fmt.Sprintf("%s.%s", schemaName, tableName)
+}</span>
+
+func (s *Segment) FromSegmentModel(segment *models.Segment) <span class="cov1" title="1">{
+        s.SegmentID = segment.SegmentID
+        s.Slug = segment.Slug
+        s.Percent = segment.Percent
+}</span>
+
+func (s *Segment) ToSegmentModel() *models.Segment <span class="cov5" title="2">{
+        return &amp;models.Segment{
+                SegmentID: s.SegmentID,
+                Slug:      s.Slug,
+                Percent:   s.Percent,
+        }
+}</span>
+
+type Users2Segments struct {
+        UserID    uint64
+        SegmentID uint64
+        Until     *string
+}
+
+func (Users2Segments) TableName(schemaName, tableName string) string <span class="cov10" title="4">{
+        return fmt.Sprintf("%s.%s", schemaName, tableName)
+}</span>
+</pre>
+		
+		<pre class="file" id="file8" style="display: none">package postgres
+
+import (
+        pkgErrors "github.com/pkg/errors"
+        "github.com/vvinokurshin/AvitoInternship/internal/config"
+        "github.com/vvinokurshin/AvitoInternship/internal/models"
+        "github.com/vvinokurshin/AvitoInternship/internal/segment/repository"
+        "github.com/vvinokurshin/AvitoInternship/pkg"
+        "github.com/vvinokurshin/AvitoInternship/pkg/errors"
+        "gorm.io/gorm"
+        "gorm.io/gorm/clause"
+)
+
+type segmentRepo struct {
+        cfg *config.Config
+        db  *gorm.DB
+}
+
+func New(cfg *config.Config, db *gorm.DB) (repository.RepositoryI, error) <span class="cov10" title="7">{
+        segRepo := &amp;segmentRepo{
+                cfg: cfg,
+                db:  db,
+        }
+
+        err := pkg.CronInit("@every 5m", segRepo.ClearExpiredConnections)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, pkgErrors.Wrap(err, "cron init")
+        }</span>
+
+        <span class="cov10" title="7">return segRepo, nil</span>
+}
+
+func (repo *segmentRepo) InsertSegment(segment *models.Segment) (uint64, error) <span class="cov1" title="1">{
+        var dbSegment Segment
+        dbSegment.FromSegmentModel(segment)
+
+        tx := repo.db.Table(Segment{}.TableName(repo.cfg.DB.DBSchemaName, repo.cfg.DB.DBSegmentTableName)).Create(&amp;dbSegment)
+        if err := tx.Error; err != nil </span><span class="cov0" title="0">{
+                return 0, pkgErrors.WithMessage(errors.ErrInternal, err.Error())
+        }</span>
+
+        <span class="cov1" title="1">return dbSegment.SegmentID, nil</span>
+}
+
+func (repo *segmentRepo) DeleteSegment(slug string) error <span class="cov1" title="1">{
+        tx := repo.db.Table(Segment{}.TableName(repo.cfg.DB.DBSchemaName, repo.cfg.DB.DBSegmentTableName)).
+                Where("slug = ?", slug).Delete(Segment{})
+        if err := tx.Error; err != nil </span><span class="cov0" title="0">{
+                return pkgErrors.WithMessage(errors.ErrInternal, err.Error())
+        }</span>
+
+        <span class="cov1" title="1">return nil</span>
+}
+
+func (repo *segmentRepo) SelectSegmentBySlug(slug string) (*models.Segment, error) <span class="cov1" title="1">{
+        var dbSegment Segment
+
+        tx := repo.db.Table(Segment{}.TableName(repo.cfg.DB.DBSchemaName, repo.cfg.DB.DBSegmentTableName)).
+                Where("slug = ?", slug).Take(&amp;dbSegment)
+        if err := tx.Error; err != nil </span><span class="cov0" title="0">{
+                if pkgErrors.Is(err, gorm.ErrRecordNotFound) </span><span class="cov0" title="0">{
+                        return nil, errors.ErrSegmentNotFound
+                }</span>
+
+                <span class="cov0" title="0">return nil, pkgErrors.WithMessage(errors.ErrInternal, err.Error())</span>
+        }
+
+        <span class="cov1" title="1">return dbSegment.ToSegmentModel(), nil</span>
+}
+
+func (repo *segmentRepo) SelectSegmentsByUser(userID uint64) ([]models.Segment, error) <span class="cov1" title="1">{
+        var dbSegments []Segment
+        SegmentsTablename := Segment{}.TableName(repo.cfg.DB.DBSchemaName, repo.cfg.DB.DBSegmentTableName)
+        U2STableName := Users2Segments{}.TableName(repo.cfg.DB.DBSchemaName, repo.cfg.DB.DBU2STableName)
+
+        tx := repo.db.Table(SegmentsTablename).Select(SegmentsTablename+".*").Joins("JOIN "+U2STableName+
+                " using(segment_id)").Where("user_id = ?", userID).Find(&amp;dbSegments)
+        if err := tx.Error; err != nil </span><span class="cov0" title="0">{
+                return []models.Segment{}, pkgErrors.WithMessage(errors.ErrInternal, err.Error())
+        }</span>
+
+        <span class="cov1" title="1">result := make([]models.Segment, len(dbSegments))
+        for idx, dbSegment := range dbSegments </span><span class="cov1" title="1">{
+                result[idx] = *dbSegment.ToSegmentModel()
+        }</span>
+
+        <span class="cov1" title="1">return result, nil</span>
+}
+
+func (repo *segmentRepo) InsertSegmentsToUser(userID uint64, segments []models.AddUserToSegment) error <span class="cov1" title="1">{
+        dbU2S := make([]Users2Segments, len(segments))
+        for idx, segment := range segments </span><span class="cov1" title="1">{
+                dbU2S[idx].UserID = userID
+                dbU2S[idx].SegmentID = segment.SegmentID
+                dbU2S[idx].Until = segment.Until
+        }</span>
+
+        <span class="cov1" title="1">tx := repo.db.Table(Users2Segments{}.TableName(repo.cfg.DB.DBSchemaName, repo.cfg.DB.DBU2STableName)).
+                Clauses(clause.OnConflict{
+                        Columns:   []clause.Column{{Name: "user_id"}, {Name: "segment_id"}},
+                        DoUpdates: clause.AssignmentColumns([]string{"until"}),
+                }).Create(&amp;dbU2S)
+        if err := tx.Error; err != nil </span><span class="cov0" title="0">{
+                return pkgErrors.WithMessage(errors.ErrInternal, err.Error())
+        }</span>
+
+        <span class="cov1" title="1">return nil</span>
+}
+
+func (repo *segmentRepo) DeleteSegmentsFromUser(userID uint64, segmentIDs []uint64) error <span class="cov1" title="1">{
+        tx := repo.db.Table(Users2Segments{}.TableName(repo.cfg.DB.DBSchemaName, repo.cfg.DB.DBU2STableName)).Where(
+                "user_id = ? AND segment_id IN ?", userID, segmentIDs).Delete(&amp;Users2Segments{})
+        if err := tx.Error; err != nil </span><span class="cov0" title="0">{
+                return pkgErrors.WithMessage(errors.ErrInternal, err.Error())
+        }</span>
+
+        <span class="cov1" title="1">return nil</span>
+}
+
+func (repo *segmentRepo) InsertUsersToSegment(segmentID uint64, userIDs []uint64) error <span class="cov1" title="1">{
+        dbU2S := make([]Users2Segments, len(userIDs))
+        for idx, userID := range userIDs </span><span class="cov1" title="1">{
+                dbU2S[idx].UserID = userID
+                dbU2S[idx].SegmentID = segmentID
+        }</span>
+
+        <span class="cov1" title="1">tx := repo.db.Table(Users2Segments{}.TableName(repo.cfg.DB.DBSchemaName, repo.cfg.DB.DBU2STableName)).
+                Clauses(clause.OnConflict{DoNothing: true}).Create(&amp;dbU2S)
+        if err := tx.Error; err != nil </span><span class="cov0" title="0">{
+                return pkgErrors.WithMessage(errors.ErrInternal, err.Error())
+        }</span>
+
+        <span class="cov1" title="1">return nil</span>
+}
+
+func (repo *segmentRepo) ClearExpiredConnections() <span class="cov0" title="0">{
+        repo.db.Raw("SELECT delete_old_accesses()").Rows()
+}</span>
+</pre>
+		
+		<pre class="file" id="file9" style="display: none">package usecase
+
+import (
+        pkgErr "github.com/pkg/errors"
+        "github.com/vvinokurshin/AvitoInternship/internal/config"
+        "github.com/vvinokurshin/AvitoInternship/internal/models"
+        segmentRepository "github.com/vvinokurshin/AvitoInternship/internal/segment/repository"
+        userRepository "github.com/vvinokurshin/AvitoInternship/internal/user/repository"
+        "github.com/vvinokurshin/AvitoInternship/pkg"
+        "github.com/vvinokurshin/AvitoInternship/pkg/errors"
+)
+
+//go:generate mockgen -destination=./mocks/usecase.go -source=./usecase.go -package=mocks
+
+type UseCaseI interface {
+        CreateSegment(form models.FormSegment) (*models.Segment, error)
+        DeleteSegment(slug string) error
+        GetSegmentBySlug(slug string) (*models.Segment, error)
+        GetUserSegments(userID uint64) ([]models.Segment, error)
+        EditUserSegments(userID uint64, segmentsToAdd []models.AddUserToSegment, segmentsToRemove []string) ([]models.Segment, error)
+}
+
+type UseCase struct {
+        cfg         *config.Config
+        segmentRepo segmentRepository.RepositoryI
+        userRepo    userRepository.RepositoryI
+}
+
+func New(cfg *config.Config, segmentRepo segmentRepository.RepositoryI, userRepo userRepository.RepositoryI) UseCaseI <span class="cov10" title="5">{
+        return &amp;UseCase{
+                cfg:         cfg,
+                segmentRepo: segmentRepo,
+                userRepo:    userRepo,
+        }
+}</span>
+
+func (uc *UseCase) CreateSegment(form models.FormSegment) (*models.Segment, error) <span class="cov1" title="1">{
+        _, err := uc.segmentRepo.SelectSegmentBySlug(form.Slug)
+        if err != errors.ErrSegmentNotFound </span><span class="cov0" title="0">{
+                return nil, errors.ErrSegmentExists
+        }</span>
+
+        <span class="cov1" title="1">segment := &amp;models.Segment{
+                Slug:    form.Slug,
+                Percent: form.Percent,
+        }
+
+        segmentID, err := uc.segmentRepo.InsertSegment(segment)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, pkgErr.Wrap(err, "insert segment")
+        }</span>
+
+        <span class="cov1" title="1">segment.SegmentID = segmentID
+
+        if segment.Percent != nil </span><span class="cov0" title="0">{
+                userIDs, err := uc.userRepo.SelectUserIDs()
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, pkgErr.Wrap(err, "get user IDs")
+                }</span>
+
+                <span class="cov0" title="0">IDsToAdd := pkg.PercentageIDs(userIDs, *segment.Percent)
+                err = uc.segmentRepo.InsertUsersToSegment(segmentID, IDsToAdd)
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, pkgErr.Wrap(err, "insert users to segment")
+                }</span>
+        }
+
+        <span class="cov1" title="1">return segment, nil</span>
+}
+
+func (uc *UseCase) DeleteSegment(slug string) error <span class="cov1" title="1">{
+        _, err := uc.segmentRepo.SelectSegmentBySlug(slug)
+        if err != nil </span><span class="cov0" title="0">{
+                return pkgErr.Wrap(err, "select segment by slug")
+        }</span>
+
+        <span class="cov1" title="1">err = uc.segmentRepo.DeleteSegment(slug)
+        if err != nil </span><span class="cov0" title="0">{
+                return pkgErr.Wrap(err, "delete segment")
+        }</span>
+
+        <span class="cov1" title="1">return nil</span>
+}
+
+func (uc *UseCase) GetSegmentBySlug(slug string) (*models.Segment, error) <span class="cov1" title="1">{
+        segment, err := uc.segmentRepo.SelectSegmentBySlug(slug)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, pkgErr.Wrap(err, "select segment by slug")
+        }</span>
+
+        <span class="cov1" title="1">return segment, nil</span>
+}
+
+func (uc *UseCase) GetUserSegments(userID uint64) ([]models.Segment, error) <span class="cov1" title="1">{
+        _, err := uc.userRepo.SelectUserByID(userID)
+        if err != nil </span><span class="cov0" title="0">{
+                return []models.Segment{}, pkgErr.Wrap(err, "select user by ID")
+        }</span>
+
+        <span class="cov1" title="1">segments, err := uc.segmentRepo.SelectSegmentsByUser(userID)
+        if err != nil </span><span class="cov0" title="0">{
+                return []models.Segment{}, pkgErr.Wrap(err, "select segments by userID")
+        }</span>
+
+        <span class="cov1" title="1">return segments, nil</span>
+}
+
+func (uc *UseCase) EditUserSegments(userID uint64, segmentsToAdd []models.AddUserToSegment, segmentsToRemove []string) ([]models.Segment, error) <span class="cov1" title="1">{
+        _, err := uc.userRepo.SelectUserByID(userID)
+        if err != nil </span><span class="cov0" title="0">{
+                return []models.Segment{}, pkgErr.Wrap(err, "select user by ID")
+        }</span>
+
+        <span class="cov1" title="1">for idx, currentSegment := range segmentsToAdd </span><span class="cov1" title="1">{
+                segment, err := uc.segmentRepo.SelectSegmentBySlug(currentSegment.SegmentSlug)
+                if err != nil </span><span class="cov0" title="0">{
+                        return []models.Segment{}, pkgErr.Wrap(err, "select segment by slug")
+                }</span>
+
+                <span class="cov1" title="1">segmentsToAdd[idx].SegmentID = segment.SegmentID</span>
+        }
+
+        <span class="cov1" title="1">segmentIDsToRemove := make([]uint64, len(segmentsToRemove))
+        for idx, segmentSlug := range segmentsToRemove </span><span class="cov1" title="1">{
+                segment, err := uc.segmentRepo.SelectSegmentBySlug(segmentSlug)
+                if err != nil </span><span class="cov0" title="0">{
+                        return []models.Segment{}, pkgErr.Wrap(err, "select segment by slug")
+                }</span>
+
+                <span class="cov1" title="1">segmentIDsToRemove[idx] = segment.SegmentID</span>
+        }
+
+        <span class="cov1" title="1">if len(segmentsToAdd) != 0 </span><span class="cov1" title="1">{
+                err = uc.segmentRepo.InsertSegmentsToUser(userID, segmentsToAdd)
+                if err != nil </span><span class="cov0" title="0">{
+                        return []models.Segment{}, pkgErr.Wrap(err, "insert segments to user")
+                }</span>
+        }
+
+        <span class="cov1" title="1">if len(segmentIDsToRemove) != 0 </span><span class="cov1" title="1">{
+                err = uc.segmentRepo.DeleteSegmentsFromUser(userID, segmentIDsToRemove)
+                if err != nil </span><span class="cov0" title="0">{
+                        return []models.Segment{}, pkgErr.Wrap(err, "delete segments from user")
+                }</span>
+        }
+
+        <span class="cov1" title="1">segments, err := uc.segmentRepo.SelectSegmentsByUser(userID)
+        if err != nil </span><span class="cov0" title="0">{
+                return []models.Segment{}, pkgErr.Wrap(err, "select segments by userID")
+        }</span>
+
+        <span class="cov1" title="1">return segments, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file10" style="display: none">package delivery
+
+import (
+        "encoding/json"
+        "github.com/go-playground/validator/v10"
+        "github.com/gorilla/mux"
+        pkgErrors "github.com/pkg/errors"
+        "github.com/vvinokurshin/AvitoInternship/internal/config"
+        "github.com/vvinokurshin/AvitoInternship/internal/models"
+        userUC "github.com/vvinokurshin/AvitoInternship/internal/user/usecase"
+        "github.com/vvinokurshin/AvitoInternship/pkg"
+        "github.com/vvinokurshin/AvitoInternship/pkg/errors"
+        "net/http"
+        "strconv"
+)
+
+type DeliveryI interface {
+        CreateUser(w http.ResponseWriter, r *http.Request)
+        EditUser(w http.ResponseWriter, r *http.Request)
+        DeleteUser(w http.ResponseWriter, r *http.Request)
+        GetUser(w http.ResponseWriter, r *http.Request)
+}
+
+type Delivery struct {
+        cfg *config.Config
+        uc  userUC.UseCaseI
+}
+
+func New(cfg *config.Config, uc userUC.UseCaseI) DeliveryI <span class="cov10" title="4">{
+        return &amp;Delivery{
+                cfg: cfg,
+                uc:  uc,
+        }
+}</span>
+
+// CreateUser godoc
+// @Summary      CreateUser
+// @Description  create user
+// @Tags     user
+// @Accept         application/json
+// @Produce  application/json
+// @Param    segment body models.FormUser true "form user"
+// @Success 200 {object} models.UserResponse "user created"
+// @Failure 400 {object} errors.JSONError "invalid form"
+// @Failure 409 {object} errors.JSONError "user with this nickname already exists"
+// @Failure 500 {object} errors.JSONError "internal server error"
+// @Router   /user/create [post]
+func (d *Delivery) CreateUser(w http.ResponseWriter, r *http.Request) <span class="cov1" title="1">{
+        form := models.FormUser{}
+        if err := json.NewDecoder(r.Body).Decode(&amp;form); err != nil </span><span class="cov0" title="0">{
+                pkg.HandleError(w, r, pkgErrors.Wrap(errors.ErrInvalidForm, err.Error()))
+                return
+        }</span>
+
+        <span class="cov1" title="1">validate := validator.New()
+        if err := validate.Struct(form); err != nil </span><span class="cov0" title="0">{
+                pkg.HandleError(w, r, pkgErrors.Wrap(errors.ErrInvalidForm, err.Error()))
+                return
+        }</span>
+
+        <span class="cov1" title="1">response, err := d.uc.CreateUser(form)
+        if err != nil </span><span class="cov0" title="0">{
+                pkg.HandleError(w, r, err)
+                return
+        }</span>
+
+        <span class="cov1" title="1">pkg.SendJSON(w, r, http.StatusOK, models.UserResponse{
+                User: *response,
+        })</span>
+}
+
+// EditUser godoc
+// @Summary      EditUser
+// @Description  edit user
+// @Tags     user
+// @Accept         application/json
+// @Produce  application/json
+// @Param id path int true "id"
+// @Param    segment body models.FormUser true "form user"
+// @Success 200 {object} models.UserResponse "user info edited"
+// @Failure 400 {object} errors.JSONError "invalid url"
+// @Failure 400 {object} errors.JSONError "invalid form"
+// @Failure 404 {object} errors.JSONError "user not found"
+// @Failure 409 {object} errors.JSONError "user with this nickname already exists"
+// @Failure 500 {object} errors.JSONError "internal server error"
+// @Router   /user/{id} [put]
+func (d *Delivery) EditUser(w http.ResponseWriter, r *http.Request) <span class="cov1" title="1">{
+        vars := mux.Vars(r)
+        userID, err := strconv.ParseUint(vars["id"], 10, 64)
+        if err != nil </span><span class="cov0" title="0">{
+                pkg.HandleError(w, r, errors.ErrInvalidURL)
+                return
+        }</span>
+
+        <span class="cov1" title="1">form := models.FormUser{}
+        if err := json.NewDecoder(r.Body).Decode(&amp;form); err != nil </span><span class="cov0" title="0">{
+                pkg.HandleError(w, r, pkgErrors.Wrap(errors.ErrInvalidForm, err.Error()))
+                return
+        }</span>
+
+        <span class="cov1" title="1">validate := validator.New()
+        if err := validate.Struct(form); err != nil </span><span class="cov0" title="0">{
+                pkg.HandleError(w, r, pkgErrors.Wrap(errors.ErrInvalidForm, err.Error()))
+                return
+        }</span>
+
+        <span class="cov1" title="1">response, err := d.uc.EditUser(userID, form)
+        if err != nil </span><span class="cov0" title="0">{
+                pkg.HandleError(w, r, err)
+                return
+        }</span>
+
+        <span class="cov1" title="1">pkg.SendJSON(w, r, http.StatusOK, models.UserResponse{
+                User: *response,
+        })</span>
+}
+
+// DeleteUser godoc
+// @Summary      DeleteUser
+// @Description  delete user
+// @Tags     user
+// @Accept         application/json
+// @Produce  application/json
+// @Param id path int true "id"
+// @Success 200 "user deleted"
+// @Failure 400 {object} errors.JSONError "invalid url"
+// @Failure 404 {object} errors.JSONError "user not found"
+// @Failure 500 {object} errors.JSONError "internal server error"
+// @Router   /user/{id} [delete]
+func (d *Delivery) DeleteUser(w http.ResponseWriter, r *http.Request) <span class="cov1" title="1">{
+        vars := mux.Vars(r)
+        userID, err := strconv.ParseUint(vars["id"], 10, 64)
+        if err != nil </span><span class="cov0" title="0">{
+                pkg.HandleError(w, r, errors.ErrInvalidURL)
+                return
+        }</span>
+
+        <span class="cov1" title="1">err = d.uc.DeleteUser(userID)
+        if err != nil </span><span class="cov0" title="0">{
+                pkg.HandleError(w, r, err)
+                return
+        }</span>
+
+        <span class="cov1" title="1">w.WriteHeader(http.StatusOK)</span>
+}
+
+// GetUser godoc
+// @Summary      GetUser
+// @Description  get user
+// @Tags     user
+// @Accept         application/json
+// @Produce  application/json
+// @Param id path int true "id"
+// @Success 200 {object} models.UserResponse "success get user info"
+// @Failure 400 {object} errors.JSONError "invalid url"
+// @Failure 404 {object} errors.JSONError "user not found"
+// @Failure 500 {object} errors.JSONError "internal server error"
+// @Router   /user/{id} [get]
+func (d *Delivery) GetUser(w http.ResponseWriter, r *http.Request) <span class="cov1" title="1">{
+        vars := mux.Vars(r)
+        userID, err := strconv.ParseUint(vars["id"], 10, 64)
+        if err != nil </span><span class="cov0" title="0">{
+                pkg.HandleError(w, r, errors.ErrInvalidURL)
+                return
+        }</span>
+
+        <span class="cov1" title="1">response, err := d.uc.GetUserByID(userID)
+        if err != nil </span><span class="cov0" title="0">{
+                pkg.HandleError(w, r, err)
+                return
+        }</span>
+
+        <span class="cov1" title="1">pkg.SendJSON(w, r, http.StatusOK, models.UserResponse{
+                User: *response,
+        })</span>
+}
+</pre>
+		
+		<pre class="file" id="file11" style="display: none">package postgres
+
+import (
+        "fmt"
+        "github.com/vvinokurshin/AvitoInternship/internal/models"
+)
+
+type User struct {
+        UserID    uint64 `gorm:"primary_key"`
+        Username  string
+        FirstName string
+        LastName  string
+}
+
+func (User) TableName(schemaName, tableName string) string <span class="cov10" title="6">{
+        return fmt.Sprintf("%s.%s", schemaName, tableName)
+}</span>
+
+func (u *User) FromUserModel(user *models.User) <span class="cov4" title="2">{
+        u.UserID = user.UserID
+        u.Username = user.Username
+        u.FirstName = user.FirstName
+        u.LastName = user.LastName
+}</span>
+
+func (u *User) ToUserModel() (user *models.User) <span class="cov4" title="2">{
+        return &amp;models.User{
+                UserID:    u.UserID,
+                Username:  u.Username,
+                FirstName: u.FirstName,
+                LastName:  u.LastName,
+        }
+}</span>
+</pre>
+		
+		<pre class="file" id="file12" style="display: none">package postgres
+
+import (
+        pkgErrors "github.com/pkg/errors"
+        "github.com/vvinokurshin/AvitoInternship/internal/config"
+        "github.com/vvinokurshin/AvitoInternship/internal/models"
+        "github.com/vvinokurshin/AvitoInternship/internal/user/repository"
+        "github.com/vvinokurshin/AvitoInternship/pkg/errors"
+        "gorm.io/gorm"
+)
+
+type userRepo struct {
+        cfg *config.Config
+        db  *gorm.DB
+}
+
+func New(cfg *config.Config, db *gorm.DB) repository.RepositoryI <span class="cov10" title="6">{
+        return &amp;userRepo{
+                cfg: cfg,
+                db:  db,
+        }
+}</span>
+
+func (repo *userRepo) InsertUser(user *models.User) (uint64, error) <span class="cov1" title="1">{
+        var dbUser User
+        dbUser.FromUserModel(user)
+
+        tx := repo.db.Table(User{}.TableName(repo.cfg.DB.DBSchemaName, repo.cfg.DB.DBUserTableName)).Create(&amp;dbUser)
+        if err := tx.Error; err != nil </span><span class="cov0" title="0">{
+                return 0, pkgErrors.WithMessage(errors.ErrInternal, err.Error())
+        }</span>
+
+        <span class="cov1" title="1">return dbUser.UserID, nil</span>
+}
+
+func (repo *userRepo) UpdateUser(user *models.User) error <span class="cov1" title="1">{
+        var dbUser User
+        dbUser.FromUserModel(user)
+
+        tx := repo.db.Table(User{}.TableName(repo.cfg.DB.DBSchemaName, repo.cfg.DB.DBUserTableName)).
+                Omit("user_id").Updates(&amp;dbUser)
+        if err := tx.Error; err != nil </span><span class="cov0" title="0">{
+                return pkgErrors.WithMessage(errors.ErrInternal, err.Error())
+        }</span>
+
+        <span class="cov1" title="1">return nil</span>
+}
+
+func (repo *userRepo) DeleteUser(userID uint64) error <span class="cov1" title="1">{
+        tx := repo.db.Table(User{}.TableName(repo.cfg.DB.DBSchemaName, repo.cfg.DB.DBUserTableName)).
+                Where("user_id = ?", userID).Delete(User{})
+        if err := tx.Error; err != nil </span><span class="cov0" title="0">{
+                return pkgErrors.WithMessage(errors.ErrInternal, err.Error())
+        }</span>
+
+        <span class="cov1" title="1">return nil</span>
+}
+
+func (repo *userRepo) SelectUserByID(userID uint64) (*models.User, error) <span class="cov1" title="1">{
+        var dbUser User
+
+        tx := repo.db.Table(User{}.TableName(repo.cfg.DB.DBSchemaName, repo.cfg.DB.DBUserTableName)).
+                Where("user_id = ?", userID).Take(&amp;dbUser)
+        if err := tx.Error; err != nil </span><span class="cov0" title="0">{
+                if pkgErrors.Is(err, gorm.ErrRecordNotFound) </span><span class="cov0" title="0">{
+                        return nil, errors.ErrUserNotFound
+                }</span>
+
+                <span class="cov0" title="0">return nil, pkgErrors.WithMessage(errors.ErrInternal, err.Error())</span>
+        }
+
+        <span class="cov1" title="1">return dbUser.ToUserModel(), nil</span>
+}
+
+func (repo *userRepo) SelectUserByUsername(username string) (*models.User, error) <span class="cov1" title="1">{
+        var dbUser User
+
+        tx := repo.db.Table(User{}.TableName(repo.cfg.DB.DBSchemaName, repo.cfg.DB.DBUserTableName)).
+                Where("username = ?", username).Take(&amp;dbUser)
+        if err := tx.Error; err != nil </span><span class="cov0" title="0">{
+                if pkgErrors.Is(err, gorm.ErrRecordNotFound) </span><span class="cov0" title="0">{
+                        return nil, errors.ErrUserNotFound
+                }</span>
+
+                <span class="cov0" title="0">return nil, pkgErrors.WithMessage(errors.ErrInternal, err.Error())</span>
+        }
+
+        <span class="cov1" title="1">return dbUser.ToUserModel(), nil</span>
+}
+
+func (repo *userRepo) SelectUserIDs() ([]uint64, error) <span class="cov1" title="1">{
+        var IDs []uint64
+
+        tx := repo.db.Table(User{}.TableName(repo.cfg.DB.DBSchemaName, repo.cfg.DB.DBUserTableName)).Select("user_id").Find(&amp;IDs)
+        if err := tx.Error; err != nil </span><span class="cov0" title="0">{
+                return IDs, pkgErrors.WithMessage(errors.ErrInternal, err.Error())
+        }</span>
+
+        <span class="cov1" title="1">return IDs, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file13" style="display: none">package usecase
+
+import (
+        pkgErr "github.com/pkg/errors"
+        "github.com/vvinokurshin/AvitoInternship/internal/config"
+        "github.com/vvinokurshin/AvitoInternship/internal/models"
+        "github.com/vvinokurshin/AvitoInternship/internal/user/repository"
+        "github.com/vvinokurshin/AvitoInternship/pkg/errors"
+)
+
+//go:generate mockgen -destination=./mocks/usecase.go -source=./usecase.go -package=mocks
+
+type UseCaseI interface {
+        CreateUser(form models.FormUser) (*models.User, error)
+        EditUser(userID uint64, form models.FormUser) (*models.User, error)
+        DeleteUser(userID uint64) error
+        GetUserByID(userID uint64) (*models.User, error)
+}
+
+type UseCase struct {
+        cfg  *config.Config
+        repo repository.RepositoryI
+}
+
+func New(cfg *config.Config, repo repository.RepositoryI) UseCaseI <span class="cov10" title="4">{
+        return &amp;UseCase{
+                cfg:  cfg,
+                repo: repo,
+        }
+}</span>
+
+func (uc *UseCase) CreateUser(form models.FormUser) (*models.User, error) <span class="cov1" title="1">{
+        _, err := uc.repo.SelectUserByUsername(form.Username)
+        if err != errors.ErrUserNotFound </span><span class="cov0" title="0">{
+                return nil, errors.ErrUserExists
+        }</span>
+
+        <span class="cov1" title="1">user := &amp;models.User{
+                Username:  form.Username,
+                FirstName: form.FirstName,
+                LastName:  form.LastName,
+        }
+
+        userID, err := uc.repo.InsertUser(user)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, pkgErr.Wrap(err, "insert user")
+        }</span>
+
+        <span class="cov1" title="1">user.UserID = userID
+        return user, nil</span>
+}
+
+func (uc *UseCase) EditUser(userID uint64, form models.FormUser) (*models.User, error) <span class="cov1" title="1">{
+        user, err := uc.repo.SelectUserByID(userID)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, pkgErr.Wrap(err, "get user by ID")
+        }</span>
+
+        <span class="cov1" title="1">if user.Username != form.Username </span><span class="cov0" title="0">{
+                _, err := uc.repo.SelectUserByUsername(form.Username)
+                if err != errors.ErrUserNotFound </span><span class="cov0" title="0">{
+                        return nil, errors.ErrUserExists
+                }</span>
+
+                <span class="cov0" title="0">user.Username = form.Username</span>
+        }
+
+        <span class="cov1" title="1">user.FirstName = form.FirstName
+        user.LastName = form.LastName
+
+        err = uc.repo.UpdateUser(user)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, pkgErr.Wrap(err, "update user info")
+        }</span>
+
+        <span class="cov1" title="1">return user, nil</span>
+}
+
+func (uc *UseCase) DeleteUser(userID uint64) error <span class="cov1" title="1">{
+        _, err := uc.repo.SelectUserByID(userID)
+        if err != nil </span><span class="cov0" title="0">{
+                return pkgErr.Wrap(err, "select user by ID")
+        }</span>
+
+        <span class="cov1" title="1">err = uc.repo.DeleteUser(userID)
+        if err != nil </span><span class="cov0" title="0">{
+                return pkgErr.Wrap(err, "delete user")
+        }</span>
+
+        <span class="cov1" title="1">return nil</span>
+}
+
+func (uc *UseCase) GetUserByID(userID uint64) (*models.User, error) <span class="cov1" title="1">{
+        user, err := uc.repo.SelectUserByID(userID)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, pkgErr.Wrap(err, "select user by ID")
+        }</span>
+
+        <span class="cov1" title="1">return user, nil</span>
+}
+
+//func (uc *UseCase) GetUserByUsername(username string) (*models.User, error) {
+//        user, err := uc.repo.SelectUserByUsername(username)
+//        if err != nil {
+//                return nil, pkgErr.Wrap(err, "select user by username")
+//        }
+//
+//        return user, nil
+//}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

@@ -1,0 +1,436 @@
+basePath: /api/v1
+definitions:
+  errors.JSONError:
+    properties:
+      code:
+        type: integer
+      message:
+        type: string
+    type: object
+  models.AddUserToSegment:
+    properties:
+      segmentSlug:
+        type: string
+      until:
+        type: string
+    type: object
+  models.FormEditSegments:
+    properties:
+      segmentsToAdd:
+        items:
+          $ref: '#/definitions/models.AddUserToSegment'
+        type: array
+      segmentsToRemove:
+        items:
+          type: string
+        type: array
+    type: object
+  models.FormSegment:
+    properties:
+      percent:
+        type: integer
+      slug:
+        type: string
+    required:
+    - slug
+    type: object
+  models.FormUser:
+    properties:
+      firstName:
+        type: string
+      lastName:
+        type: string
+      username:
+        type: string
+    required:
+    - firstName
+    - lastName
+    - username
+    type: object
+  models.Segment:
+    properties:
+      percent:
+        type: integer
+      segmentID:
+        type: integer
+      slug:
+        type: string
+    type: object
+  models.SegmentResponse:
+    properties:
+      segment:
+        $ref: '#/definitions/models.Segment'
+    type: object
+  models.SegmentsResponse:
+    properties:
+      count:
+        type: integer
+      segments:
+        items:
+          $ref: '#/definitions/models.Segment'
+        type: array
+    type: object
+  models.User:
+    properties:
+      firstName:
+        type: string
+      lastName:
+        type: string
+      userID:
+        type: integer
+      username:
+        type: string
+    type: object
+  models.UserResponse:
+    properties:
+      user:
+        $ref: '#/definitions/models.User'
+    type: object
+host: localhost:8001
+info:
+  contact: {}
+  title: Wishlist Swagger API
+  version: "1.0"
+paths:
+  /history:
+    get:
+      consumes:
+      - application/json
+      description: getting the history of adding/removing users in a segment for a
+        specific month
+      parameters:
+      - description: year
+        in: query
+        name: year
+        required: true
+        type: integer
+      - description: month
+        in: query
+        name: month
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: downloaded file
+        "400":
+          description: invalid parameters
+          schema:
+            $ref: '#/definitions/errors.JSONError'
+        "500":
+          description: internal server error
+          schema:
+            $ref: '#/definitions/errors.JSONError'
+      summary: GetHistoryCSV
+      tags:
+      - history
+  /segment/{slug}:
+    delete:
+      consumes:
+      - application/json
+      description: delete segment
+      parameters:
+      - description: slug
+        in: path
+        name: slug
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: segment deleted
+        "400":
+          description: invalid url
+          schema:
+            $ref: '#/definitions/errors.JSONError'
+        "404":
+          description: segment not found
+          schema:
+            $ref: '#/definitions/errors.JSONError'
+        "500":
+          description: internal server error
+          schema:
+            $ref: '#/definitions/errors.JSONError'
+      summary: DeleteSegment
+      tags:
+      - segment
+    get:
+      consumes:
+      - application/json
+      description: get segment
+      parameters:
+      - description: slug
+        in: path
+        name: slug
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success get segment info
+          schema:
+            $ref: '#/definitions/models.SegmentResponse'
+        "400":
+          description: invalid url
+          schema:
+            $ref: '#/definitions/errors.JSONError'
+        "404":
+          description: segment not found
+          schema:
+            $ref: '#/definitions/errors.JSONError'
+        "500":
+          description: internal server error
+          schema:
+            $ref: '#/definitions/errors.JSONError'
+      summary: GetSegment
+      tags:
+      - segment
+  /segment/create:
+    post:
+      consumes:
+      - application/json
+      description: create segment
+      parameters:
+      - description: form segment
+        in: body
+        name: segment
+        required: true
+        schema:
+          $ref: '#/definitions/models.FormSegment'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: segment created
+          schema:
+            $ref: '#/definitions/models.SegmentResponse'
+        "400":
+          description: percent is invalid
+          schema:
+            $ref: '#/definitions/errors.JSONError'
+        "409":
+          description: segment with this slug already exists
+          schema:
+            $ref: '#/definitions/errors.JSONError'
+        "500":
+          description: internal server error
+          schema:
+            $ref: '#/definitions/errors.JSONError'
+      summary: CreateSegment
+      tags:
+      - segment
+  /user/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: delete user
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: user deleted
+        "400":
+          description: invalid url
+          schema:
+            $ref: '#/definitions/errors.JSONError'
+        "404":
+          description: user not found
+          schema:
+            $ref: '#/definitions/errors.JSONError'
+        "500":
+          description: internal server error
+          schema:
+            $ref: '#/definitions/errors.JSONError'
+      summary: DeleteUser
+      tags:
+      - user
+    get:
+      consumes:
+      - application/json
+      description: get user
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success get user info
+          schema:
+            $ref: '#/definitions/models.UserResponse'
+        "400":
+          description: invalid url
+          schema:
+            $ref: '#/definitions/errors.JSONError'
+        "404":
+          description: user not found
+          schema:
+            $ref: '#/definitions/errors.JSONError'
+        "500":
+          description: internal server error
+          schema:
+            $ref: '#/definitions/errors.JSONError'
+      summary: GetUser
+      tags:
+      - user
+    put:
+      consumes:
+      - application/json
+      description: edit user
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: form user
+        in: body
+        name: segment
+        required: true
+        schema:
+          $ref: '#/definitions/models.FormUser'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: user info edited
+          schema:
+            $ref: '#/definitions/models.UserResponse'
+        "400":
+          description: invalid form
+          schema:
+            $ref: '#/definitions/errors.JSONError'
+        "404":
+          description: user not found
+          schema:
+            $ref: '#/definitions/errors.JSONError'
+        "409":
+          description: user with this nickname already exists
+          schema:
+            $ref: '#/definitions/errors.JSONError'
+        "500":
+          description: internal server error
+          schema:
+            $ref: '#/definitions/errors.JSONError'
+      summary: EditUser
+      tags:
+      - user
+  /user/{id}/segments:
+    get:
+      consumes:
+      - application/json
+      description: get user's segment
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success get user's segments
+          schema:
+            $ref: '#/definitions/models.SegmentsResponse'
+        "400":
+          description: invalid url
+          schema:
+            $ref: '#/definitions/errors.JSONError'
+        "404":
+          description: user not found
+          schema:
+            $ref: '#/definitions/errors.JSONError'
+        "500":
+          description: internal server error
+          schema:
+            $ref: '#/definitions/errors.JSONError'
+      summary: GetUserSegments
+      tags:
+      - segment
+  /user/{id}/segments/edit:
+    put:
+      consumes:
+      - application/json
+      description: edit user's segment
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: form segment
+        in: body
+        name: segment
+        required: true
+        schema:
+          $ref: '#/definitions/models.FormEditSegments'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success edit user's segments
+          schema:
+            $ref: '#/definitions/models.SegmentsResponse'
+        "400":
+          description: 'field until is invalid. format: YYYY-MM-DD HH:MM'
+          schema:
+            $ref: '#/definitions/errors.JSONError'
+        "404":
+          description: segment not found
+          schema:
+            $ref: '#/definitions/errors.JSONError'
+        "500":
+          description: internal server error
+          schema:
+            $ref: '#/definitions/errors.JSONError'
+      summary: EditUserSegments
+      tags:
+      - segment
+  /user/create:
+    post:
+      consumes:
+      - application/json
+      description: create user
+      parameters:
+      - description: form user
+        in: body
+        name: segment
+        required: true
+        schema:
+          $ref: '#/definitions/models.FormUser'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: user created
+          schema:
+            $ref: '#/definitions/models.UserResponse'
+        "400":
+          description: invalid form
+          schema:
+            $ref: '#/definitions/errors.JSONError'
+        "409":
+          description: user with this nickname already exists
+          schema:
+            $ref: '#/definitions/errors.JSONError'
+        "500":
+          description: internal server error
+          schema:
+            $ref: '#/definitions/errors.JSONError'
+      summary: CreateUser
+      tags:
+      - user
+swagger: "2.0"

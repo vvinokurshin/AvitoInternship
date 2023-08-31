@@ -1,0 +1,22 @@
+project:
+  port: 8001
+  project_base_dir: AvitoInternship
+logger:
+  logs_dir: logs/app/
+  logs_file_name: dev_
+  logs_use_std_out: true
+  logs_time_format: 2006-01-02_15:04:05_MST
+
+routes:
+  route_prefix: /api/v1
+
+  route_user_create: /user/create
+  route_user: /user/{id:[0-9]+}
+  route_user_segments: /user/{id:[0-9]+}/segments
+  route_user_edit_segments: /user/{id:[0-9]+}/segments/edit
+
+  route_segment_create: /segment/create
+  route_segment: /segment/{slug}
+
+  route_history: /history
+
